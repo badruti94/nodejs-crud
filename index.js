@@ -1,65 +1,25 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const {v4 : uuidv4} = require('uuid')
+const mongoose = require('mongoose')
+require('dotenv').config()
+
+const notes = require('./routes/notes')
 
 const app = express();
 
-
 app.use(bodyParser.json())
 
-let data = [];
-
-app.get('/', (req, res) => {
-    res.json(data)
-})
-
-app.post('/', (req, res) => {
-    data.push({
-        id: uuidv4(),
-        ...req.body
-    })
-    res.json({
-        msg: 'success'
-    })
-})
-
-app.get('/:id', (req, res) => {
-    const {id} = req.params;
-    const dataById = data.filter(dt => dt.id === id)[0]
-    res.json({
-        data: dataById
-    })
-})
-
-app.put('/:id', (req, res) => {
-    const {id} = req.params;
-    const {title, note} = req.body
-
-    data = data.map( dt => {
-        if(dt.id == id){
-            return {
-                ...dt,
-                title,
-                note,
-            }
-        }
-        return dt
+mongoose.connect(process.env.MONGODB_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    },
+    () => {
+        console.log('Connect Successfully');
     })
 
-    res.json({
-        msg: 'success'
-    })
-})
+app.use('/', notes)
 
-app.delete('/:id', (req, res) => {
-    const {id} = req.params;
-
-    data = data.filter( dt => dt.id !== id)
-    res.json({
-        msg: 'success'
-    })
-})
-
-app.listen(3001,()=>{
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
     console.log('Listening on http://localhost:3001');
 })
